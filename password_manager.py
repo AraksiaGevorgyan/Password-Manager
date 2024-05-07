@@ -1,6 +1,8 @@
-from tkinter import CENTER, Tk,Label,Button, Entry, Frame, END, Toplevel
+from tkinter import CENTER, Tk,Label,Button, Entry, Frame, END, Toplevel, messagebox
 from tkinter import ttk
 from db_operations import DbOperations
+import string
+import secrets
 
 
 class root_window:
@@ -9,7 +11,7 @@ class root_window:
         self.db = db
         self.root = root
         self.root.title('Password Manager')
-        self.root.geometry('980x600+50+50' )
+        self.root.geometry('1300x615+100+100' )
 
         head_title = Label(self.root, text='Password Manager',font=('Ariel',15), padx=10, pady=10, justify=CENTER, anchor='center').grid(padx=140,pady=30)
 
@@ -27,9 +29,78 @@ class root_window:
         self.create_records_tree()
 
 
+
         search_button = Button(self.crud_frame, text='Search', bg='darkblue', fg='white',
                             font=('Ariel', 12), width=25, command=self.search_record)
         search_button.grid(row=self.row_no, column=self.col_no, padx=5, pady=5)
+
+
+        self.row_no+=1
+
+        #-----password features-------
+                # Add a button to check password strength
+                # Add an entry field for checking password strength
+        self.check_password_entry = Entry(self.crud_frame, width=30, font=('Arial', 12))
+        self.check_password_entry.grid(row=self.row_no, column=self.col_no+1, padx=5, pady=5)
+
+        self.check_password_button = Button(self.crud_frame, text='Check Password Strength', bg='darkblue', fg='white',
+                                            font=('Arial', 12), width=25, command=self.check_password_strength)
+        self.check_password_button.grid(row=self.row_no, column=self.col_no+2, padx=5, pady=5)
+
+         # Add a button to generate a password
+        self.generate_button = Button(self.crud_frame, text='Generate Password', bg='darkblue', fg='white',
+                                    font=('Arial', 12), width=25, command=self.generate_password)
+        self.generate_button.grid(row=self.row_no, column=self.col_no, padx=5, pady=5)
+        
+        
+
+        
+
+    
+
+    def generate_strong_password(self):
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+        password = ''.join(secrets.choice(alphabet) for _ in range(16))  # Adjust the length as needed
+        return password
+
+    def generate_password(self):
+        password = self.generate_strong_password()
+        self.check_password_entry.delete(0, 'end')
+        self.check_password_entry.insert(0, password)
+
+    def is_strong_password(self, password):
+        # Check minimum length
+        if len(password) < 8:
+            return False
+
+        # Check for uppercase letters
+        if not any(char.isupper() for char in password):
+            return False
+
+        # Check for lowercase letters
+        if not any(char.islower() for char in password):
+            return False
+
+        # Check for digits
+        if not any(char.isdigit() for char in password):
+            return False
+
+        # Check for special characters
+        special_chars = set(string.punctuation)
+        if not any(char in special_chars for char in password):
+            return False
+
+        # All criteria passed, password is strong
+        return True
+
+    def check_password_strength(self):
+        password = self.check_password_entry.get()
+        if self.is_strong_password(password):
+            messagebox.showinfo('Password Strength', 'Strong Password!')
+        else:
+            messagebox.showwarning('Password Strength', 'Weak Password. Please use a stronger password.')
+
+            #---------------------------
 
 
 
