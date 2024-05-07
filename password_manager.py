@@ -1,4 +1,4 @@
-from tkinter import CENTER, Tk,Label,Button, Entry, Frame
+from tkinter import CENTER, Tk,Label,Button, Entry, Frame, END, Toplevel
 from tkinter import ttk
 from db_operations import DbOperations
 
@@ -9,7 +9,7 @@ class root_window:
         self.db = db
         self.root = root
         self.root.title('Password Manager')
-        self.root.geometry('950x850')
+        self.root.geometry('980x600+50+50' )
 
         head_title = Label(self.root, text='Password Manager',font=('Ariel',15), padx=10, pady=10, justify=CENTER, anchor='center').grid(padx=140,pady=30)
 
@@ -20,17 +20,25 @@ class root_window:
         self.create_entry_labels()
         self.create_entry_boxes()
         self.create_crud_buttons()
-        self.search_entry = Entry(self.crud_frame, width = 30)
+        self.search_entry = Entry(self.crud_frame, width = 30, font=('Ariel',12))
         self.search_entry.grid(row = self.row_no, column = self.col_no)
         self.col_no+=1
         Button(self.crud_frame, text = 'Search', bg = 'darkblue', fg = 'white',font = ('Ariel',12), width=25).grid(row = self.row_no, column = self.col_no, padx=5,pady=5)
+        self.create_records_tree()
+
+
+        search_button = Button(self.crud_frame, text='Search', bg='darkblue', fg='white',
+                            font=('Ariel', 12), width=25, command=self.search_record)
+        search_button.grid(row=self.row_no, column=self.col_no, padx=5, pady=5)
+
+
 
     def create_entry_labels(self):
         self.col_no , self.row_no = 0, 0
         labels_info = ('ID', 'Website','Username', 'Password')
         for label_info in labels_info:
             Label(self.crud_frame, text = label_info, bg='darkblue',fg='white', 
-                font=('Ariel',12), padx=5, pady=5).grid(row=self.row_no, column=self.col_no,padx=2, pady=2)
+                font=('Ariel',10), padx=5, pady=5).grid(row=self.row_no, column=self.col_no,padx=2, pady=2)
             self.col_no+=1
 
 
@@ -78,24 +86,104 @@ class root_window:
 
 
         self.db.create_record(data)
+        self.show_records()
 
     def update_record(self):
-        pass
+        ID = self.entry_boxes[0].get()
+        website = self.entry_boxes[1].get()
+        username = self.entry_boxes[2].get()
+        password = self.entry_boxes[3].get()
+
+        data = {
+            'ID': ID,
+            'website': website,
+            'username': username,
+            'password': password
+        }
+        self.db.update_record(data)
+        self.show_records()
+
+       
+
     def delete_record(self):
-        pass
+        ID = self.entry_boxes[0].get()
+
+        self.db.delete_record(ID)
+        self.show_records()
+
+
+
     def show_records(self):
+        for item in self.records_tree.get_children():
+            self.records_tree.delete(item)
         records_list = self.db.show_records()
        
         for record in records_list:
-            print(record) 
+            self.records_tree.insert('',END, values=(record[0], record[3],record[4], record[5]))
+
+    def create_records_tree(self):
+        columns = ('ID', 'Website', 'Username' , 'Password')
+        self.records_tree = ttk.Treeview(self.root, columns = columns,
+        show='headings')
+        self.records_tree.heading('ID', text='ID')
+        self.records_tree.heading('Website', text='Website Name')
+        self.records_tree.heading('Username', text='Username')
+        self.records_tree.heading('Password', text='Password')
+        self.records_tree['displaycolumns'] = ('Website', 'Username')
+
+        self.records_tree.grid()
+
+        def item_selected(event):
+            for selected_item in self.records_tree.selection():
+                item = self.records_tree.item(selected_item)
+                record = item['values']
+                for entry_box, item in zip(self.entry_boxes, record):
+                    entry_box.delete(0, END)
+                    entry_box.insert(0, item)
+        self.records_tree.bind('<<TreeviewSelect>>', item_selected)
+
 
     #Copy to Clipboard
     def copy_password(self):
-        self.db
+        self.root.clipboard_clear()
+        self.root.clipboard_append(self.entry_boxes[3].get())
+        message = 'Password Copied'
+        title = 'Copy'
+        if self.entry_boxes[3].get()=='':
+            message='Box is empty'
+            title= 'Error'
+        self.show_message(title,message)
+
+#-----new----
+    def search_record(self):
+        keyword = self.search_entry.get()
+        if keyword:
+            records = self.db.search_records(keyword)
+            self.display_search_results(records)
+        else:
+            self.show_message('Error', 'Please enter a keyword to search.')
+
+    def display_search_results(self, records):
+        self.records_tree.delete(*self.records_tree.get_children())
+        for record in records:
+            self.records_tree.insert('', END, values=(record[0], record[3], record[4], record[5]))
 
 
+#---------------
 
-
+    def show_message(self, title_box:str=None, message:str=None):
+        TIME_TO_WAIT = 900   #in millisec
+        root = Toplevel(self.root)
+        background = 'lightblue'
+        if title_box =='Error':
+            background = 'red'
+        root.geometry('200x30+600+200')
+        root.title(title_box)
+        Label(root,text = message, background=background, font=('Ariel',15), fg = 'white').pack(padx=4, pady=2)
+        try:
+            root.after(TIME_TO_WAIT, root.destroy)
+        except Exception as e:
+            print("Error occured", e)
 
  
 
