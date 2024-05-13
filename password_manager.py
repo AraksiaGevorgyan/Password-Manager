@@ -1,6 +1,8 @@
 from tkinter import CENTER, Tk,Label,Button, Entry, Frame, END, Toplevel, messagebox
 from tkinter import ttk
 from db_operations import DbOperations
+
+
 import string
 import secrets
 
@@ -12,8 +14,9 @@ class root_window:
         self.root = root
         self.root.title('Password Manager')
         self.root.geometry('1300x615+100+100' )
+        self.root.configure(bg='steelblue')
 
-        head_title = Label(self.root, text='Password Manager',font=('Ariel',15), padx=10, pady=10, justify=CENTER, anchor='center').grid(padx=140,pady=30)
+        head_title = Label(self.root, text='Password Manager',font=('Ariel',20,'bold'), padx=10, pady=10, justify=CENTER, anchor='center',bg='steelblue',fg='midnightblue').grid(padx=140,pady=30)
 
 
         self.crud_frame = Frame(self.root,highlightbackground='grey',
@@ -201,6 +204,7 @@ class root_window:
         self.records_tree.heading('Username', text='Username')
         self.records_tree.heading('Password', text='Password')
         self.records_tree['displaycolumns'] = ('Website', 'Username')
+        
 
         self.records_tree.grid()
 

@@ -26,8 +26,7 @@ class DbOperations:
             print('Create the table')
 
 
-
-    
+            
 
     def create_record(self,data ,table_name = 'password_info'):
         website = data['website']
