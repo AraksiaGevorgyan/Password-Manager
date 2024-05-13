@@ -1,10 +1,9 @@
 from tkinter import CENTER, Tk,Label,Button, Entry, Frame, END, Toplevel, messagebox
 from tkinter import ttk
 from db_operations import DbOperations
-
-
 import string
 import secrets
+from encryption import Encryption  # Import the Encryption class
 
 
 class root_window:
@@ -12,11 +11,12 @@ class root_window:
     def __init__(self,root,db):
         self.db = db
         self.root = root
+        self.root.resizable(False, False)
         self.root.title('Password Manager')
-        self.root.geometry('1300x615+100+100' )
+        self.root.geometry('1000x615+100+100' )
         self.root.configure(bg='steelblue')
 
-        head_title = Label(self.root, text='Password Manager',font=('Ariel',20,'bold'), padx=10, pady=10, justify=CENTER, anchor='center',bg='steelblue',fg='midnightblue').grid(padx=140,pady=30)
+        head_title = Label(self.root, text='Password Manager',font=('Arial',20,'bold'), padx=10, pady=10, justify=CENTER, anchor='center',bg='steelblue',fg='midnightblue').grid(padx=140,pady=30)
 
 
         self.crud_frame = Frame(self.root,highlightbackground='grey',
@@ -25,7 +25,7 @@ class root_window:
         self.create_entry_labels()
         self.create_entry_boxes()
         self.create_crud_buttons()
-        self.search_entry = Entry(self.crud_frame, width = 30, font=('Ariel',12))
+        self.search_entry = Entry(self.crud_frame, width = 30, font=('Arial',12))
         self.search_entry.grid(row = self.row_no, column = self.col_no)
         self.col_no+=1
         Button(self.crud_frame, text = 'Search', bg = 'darkblue', fg = 'white',font = ('Ariel',12), width=25).grid(row = self.row_no, column = self.col_no, padx=5,pady=5)
@@ -43,17 +43,30 @@ class root_window:
         #-----password features-------
                 # Add a button to check password strength
                 # Add an entry field for checking password strength
-        self.check_password_entry = Entry(self.crud_frame, width=30, font=('Arial', 12))
-        self.check_password_entry.grid(row=self.row_no, column=self.col_no+1, padx=5, pady=5)
 
+
+        self.check_password_entry = Entry(self.crud_frame, width=30, font=('Arial', 12))
+        self.check_password_entry.grid(row=5, column=1, padx=5, pady=5)
         self.check_password_button = Button(self.crud_frame, text='Check Password Strength', bg='darkblue', fg='white',
                                             font=('Arial', 12), width=25, command=self.check_password_strength)
-        self.check_password_button.grid(row=self.row_no, column=self.col_no+2, padx=5, pady=5)
+        self.check_password_button.grid(row=5, column=2, padx=5, pady=5)
 
-         # Add a button to generate a password
         self.generate_button = Button(self.crud_frame, text='Generate Password', bg='darkblue', fg='white',
-                                    font=('Arial', 12), width=25, command=self.generate_password)
-        self.generate_button.grid(row=self.row_no, column=self.col_no, padx=5, pady=5)
+                                    font=('Arial', 12), width=20, command=self.generate_password)
+        self.generate_button.grid(row=5, column=0, padx=5, pady=5)
+
+
+        # self.check_password_entry = Entry(self.crud_frame, width=30, font=('Arial', 12))
+        # self.check_password_entry.grid(row=self.row_no, column=self.col_no+1, padx=5, pady=5)
+
+        # self.check_password_button = Button(self.crud_frame, text='Check Password Strength', bg='darkblue', fg='white',
+        #                                     font=('Arial', 12), width=25, command=self.check_password_strength)
+        # self.check_password_button.grid(row=self.row_no, column=self.col_no+2, padx=5, pady=5)
+
+        #  # Add a button to generate a password
+        # self.generate_button = Button(self.crud_frame, text='Generate Password', bg='darkblue', fg='white',
+        #                             font=('Arial', 12), width=25, command=self.generate_password)
+        # self.generate_button.grid(row=self.row_no, column=self.col_no, padx=5, pady=5)
         
         
 
@@ -147,20 +160,28 @@ class root_window:
 
 
 
+# Inside your save_record method in root_window class
     def save_record(self):
         website = self.entry_boxes[1].get()
         username = self.entry_boxes[2].get()
         password = self.entry_boxes[3].get()
+ 
+        # Create an instance of Encryption class
+        encryptor = Encryption()
+
+        # Encrypt the password
+        encrypted_password = encryptor.encrypt_password(password)
 
         data = {
             'website': website,
             'username': username,
-            'password': password
+            'password': password,
+            'encrypted_password': encrypted_password  # Include encrypted password in data
         }
-
 
         self.db.create_record(data)
         self.show_records()
+
 
     def update_record(self):
         ID = self.entry_boxes[0].get()
